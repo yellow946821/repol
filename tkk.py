@@ -145,11 +145,14 @@ Created on Wed May 13 11:36:19 2020
 #
 #mainloop()
 #t._stop()
+import socket
+import errno
+import sys
 from tkinter import *
 from PIL import Image, ImageTk
 import time
 import threading
-global linewidth , first , rectxy, myrect , start , mytime
+global linewidth , first , rectxy, myrect , start , mytime , my_username
 mytime = [0]
 linewidth = 3
 start = [0]
@@ -164,10 +167,35 @@ class YouDrawIGuess(threading.Thread):
         self.root = Tk()
         self.root.resizable(True, True)
         self.root.title('You Draw I Guess')
-        self.root.geometry('850x600')
+        self.root.geometry('1250x730')
         
+        
+        #輸入名字
+        self.username = "Nobody"
+        self.namestr = StringVar() #Entry內文字ㄉ型態是StringVar
+        self.etyName = Entry(self.root , textvariable=self.namestr , bd=5 , width=25)
+        self.etyName.grid(row=0 , column = 6)
+        self.btnSet = Button(self.root, text='設定名字' , width = 10 , command=self.Set_name) #按set設定名字
+        self.btnSet.grid(row=0 , column = 7)
+        
+        #記分板
+        self.scorebox = Text(self.root, width=40 ,height=10 , bd=3)
+        self.scorebox.grid(row=2, column = 6,columnspan=2 , sticky = N)
+        self.scorebox.insert('end',"this is a score box")
       
-        self.canvas_width = 850
+        #訊息視窗
+        self.txbox = Text(self.root,width=40 ,height=25,bd = 3)
+        self.txbox.grid(row=3, column = 6,columnspan=2 , sticky=N)
+        
+        #輸入訊息
+        self.msgstr = StringVar()
+        self.etyMsg = Entry(self.root,textvariable=self.msgstr,bd = 5 , width = 25)
+        self.etyMsg.grid(row=4 , column = 6)
+        self.btnEnter = Button(self.root, text='輸入',width=10 , command=self.Show_in_box) #按按鈕送出文字
+        self.btnEnter.grid(row=4 , column = 7)
+        
+        
+        self.canvas_width = 900
         self.canvas_height = 600
         self.var = StringVar()
         self.var.set("red")
@@ -198,7 +226,7 @@ class YouDrawIGuess(threading.Thread):
              width=self.canvas_width,
              height=self.canvas_height,
              bg="white")
-        self.cvs.grid(row = 2,columnspan=6)
+        self.cvs.grid(row = 2,columnspan=6 , rowspan = 4)
         self.cvs.bind('<Motion>', self.motion)
         self.cvs.bind("<B1-Motion>", self.drag)
         self.r1.bind('<Motion>', self.in_contrl_space)
@@ -212,7 +240,27 @@ class YouDrawIGuess(threading.Thread):
              height=5,
              bg="pink")
         self.cvstime.grid(row = 1,columnspan=6)
-        mytime[0] = self.cvstime.create_line(0,2,850,2,fill = "red",width = 10)
+        mytime[0] = self.cvstime.create_line(0,2,900,2,fill = "red",width = 10)
+    
+    def Set_name(self):
+        self.username = self.etyName.get()
+        print("username is : " , self.username)
+        self.etyName.delete(0, END)
+        self.root.title(self.username)
+
+#        username = my_username.encode("utf-8")
+#        username_header = f"{len(username):<{HEADER_LENGTH}}".encode("utf-8")
+#        client_socket.send(username_header + username)
+    
+    def Show_in_box(self): 
+        print("in msgbox")
+        if(self.username == "Nobody"):
+            self.txbox.insert('end', "Please enter username!" + '\n')
+            self.etyMsg.delete(0, END)
+        else:
+            msg = self.etyMsg.get()
+            self.etyMsg.delete(0, END)
+            self.txbox.insert('end', self.username + " > " + msg + '\n')
     
     def print_selection(self):
         self.var.set(self.var.get())
@@ -291,6 +339,7 @@ class Process(threading.Thread):
     def run(self):
         totaltime = 30
         movex = 0
+        times = 0
 #        ThirdThread.start()
         global finish
         while not finish:
@@ -301,11 +350,16 @@ class Process(threading.Thread):
 #            mytime[0] = Main.cvstime.create_line(0,2,850-minus,2,fill = "red",width = 10)
 #            minus += 10
             Main.cvstime.move(mytime[0] , movex , 0)
-            movex = -28.3
-            timetext[0].set(str(totaltime-int(time.time() - start[0])))
-            if int(time.time() - start[0]) == totaltime:
+            movex = -30
+            timetext[0].set(str(totaltime))
+            totaltime -= 1
+            if times == 30:
                 start[0] += totaltime+1
-                movex = 850
+                movex = 900
+                totaltime = 30
+                times = -1
+            times += 1
+            
             time.sleep(1)
             
             
