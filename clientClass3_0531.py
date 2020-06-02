@@ -31,7 +31,7 @@ class YouDrawIGuess(threading.Thread):
         self.attrib1 = "Attrib from Interface class"
         self.root = tk.Tk()
         self.root.title('You Draw I Guess')
-        self.root.geometry('1250x730')
+        self.root.geometry('1330x750')
         self.root.configure(background='#F8F8FF')
         
                          
@@ -39,12 +39,16 @@ class YouDrawIGuess(threading.Thread):
         self.namestr = tk.StringVar() 
         self.etyName = tk.Entry(self.root,textvariable=self.namestr,bd=5,width=25)
         self.etyName.grid(row=0 , column = 6)
-        self.btnSet = tk.Button(self.root, text='set',width=10, command=self.Set_name)
+        self.btnSet = tk.Button(self.root, text='Set',width=10, command=self.Set_name)
         self.btnSet.grid(row=0 , column = 7)
         
-        self.scorebox = tk.Text(self.root, width=40 ,height=10, bd=3)
-        self.scorebox.grid(row=2, column = 5,columnspan=3 , sticky = tk.N)
+        self.scorebox = tk.Text(self.root, width=20 ,height=8, bd=3)
+        self.scorebox.grid(row=2, column = 5,columnspan=3 , sticky = tk.N+tk.E)
         self.scorebox.insert('end',"this is a score box")
+        
+        self.topic = tk.Text(self.root, width=20 ,height=8, bd=3)
+        self.topic.grid(row=2, column = 5,columnspan=3 , padx = 20, sticky = tk.N+tk.W)
+        self.topic.insert('end',"this is a score box")
 
 #        self.scorebox = scrolledtext.ScrolledText(self.root, width=30, height=5, wrap=tk.WORD)
 #        self.scorebox.grid(row=2, column = 6,sticky=tk.N+tk.W)
@@ -58,13 +62,15 @@ class YouDrawIGuess(threading.Thread):
         self.msgstr = tk.StringVar()
         self.etyMsg = tk.Entry(self.root,textvariable=self.msgstr,bd=5,width=25)
         self.etyMsg.grid(row=4 , column = 5 , columnspan=2)
-        self.btnEnter = tk.Button(self.root, text='enter',width=10, command=self.sendMessage)
+        self.btnEnter = tk.Button(self.root, text='Enter',width=10, command=self.sendMessage)
         self.btnEnter.grid(row=4 , column = 7)
         
         self.canvas_width = 900
         self.canvas_height = 600
         self.var = tk.StringVar() 
         self.var.set("red")
+        self.ready = tk.StringVar() 
+        self.ready.set("not ready")
         self.s = tk.Scale(self.root, label='Linewidth', from_ = 2, to = 20, 
              orient=tk.HORIZONTAL, length=300, showvalue=1,
              tickinterval=2, resolution=1, command=self.print_scale)
@@ -77,6 +83,10 @@ class YouDrawIGuess(threading.Thread):
         self.r3.grid(row=0 , column = 3,sticky=tk.W)
         self.r4 = tk.Radiobutton(self.root, text='ERASER', variable=self.var, value='eraser',width=10, indicatoron=0, command=self.print_selection)
         self.r4.grid(row=0 , column = 4,sticky=tk.W)
+        self.r5 = tk.Radiobutton(self.root, text='READY', variable=self.ready, value='ready',width=10, indicatoron=0, command=self.Ready)
+        self.r5.grid(row=0 , column = 5,sticky=tk.N)
+        self.r6 = tk.Radiobutton(self.root, text='NOT READY', variable=self.ready, value='not ready',width=10, indicatoron=0, command=self.NotReady)
+        self.r6.grid(row=0 , column = 5)
                 
         self.cvs = tk.Canvas(self.root, width=self.canvas_width, height=self.canvas_height, bg="white")
         self.cvs.grid(row = 2, column=0, columnspan=7,rowspan = 4,sticky=tk.W)
@@ -86,13 +96,16 @@ class YouDrawIGuess(threading.Thread):
         self.r2.bind('<Motion>', self.in_contrl_space)
         self.r3.bind('<Motion>', self.in_contrl_space)
         self.r4.bind('<Motion>', self.in_contrl_space)
+        self.r5.bind('<Motion>', self.in_contrl_space)
+        self.r6.bind('<Motion>', self.in_contrl_space)
         self.s.bind('<Motion>', self.in_contrl_space)
         
         global timetext
         timetext = [tk.StringVar()]
-        timetext[0].set("Test")
+        timetext[0].set("Time")
         self.Time = tk.Label(self.root, textvariable=timetext , width = 10)
-        self.Time.grid(row = 0 , column = 5)
+        self.Time.grid(row = 0 , column = 5,sticky = tk.S)
+        self.Time.bind('<Motion>', self.in_contrl_space)
 
         self.cvstime = tk.Canvas(self.root, width=self.canvas_width, height=5, bg="pink")
         self.cvstime.grid(row = 1, columnspan=5, sticky=tk.W)
@@ -102,7 +115,7 @@ class YouDrawIGuess(threading.Thread):
     def Set_name(self):
         self.my_username = self.etyName.get()
         self.root.title(self.my_username)
-       
+        self.etyName.delete(0, 'end') 
         
     def print_selection(self): 
         self.var.set(self.var.get())
@@ -157,13 +170,40 @@ class YouDrawIGuess(threading.Thread):
         clientMessage = "["+str(event.x)+","+str(event.y)+","+str(self.s.get())+","+self.var.get()+"]"+" "
         client_socket.send(clientMessage.encode('utf-8'))
             
+    def Ready(self):
+        print(self.ready.get())
+        if self.my_username == "Nobody":
+            self.ready.set("none")
+            self.txbox.insert('end', "You have to set a name!!!")
+            self.txbox.insert('end', "\n")
+        else:
+            msg = "__Ready__"
+            client_socket.send(msg.encode('utf-8'))
+        
+    def NotReady(self):
+        print(self.ready.get())
+        if self.my_username == "Nobody":
+            self.ready.set("none")
+            self.txbox.insert('end', "You have to set a name!!!")
+            self.txbox.insert('end', "\n")
+        else:
+            msg = "__Not Ready__"
+            client_socket.send(msg.encode('utf-8'))
+        
     def sendMessage(self):
-        clientMessage = self.etyMsg.get()
-        user_and_msg = self.my_username+": "+clientMessage
-        self.txbox.insert('end', "You: "+ clientMessage)
-        self.txbox.insert('end', "\n")
-        client_socket.send(user_and_msg.encode('utf-8'))
-        self.etyMsg.delete(0, 'end') 
+        if self.my_username == "Nobody":
+            self.txbox.insert('end', "You have to set a name!!!")
+            self.txbox.insert('end', "\n")
+            self.etyMsg.delete(0, 'end') 
+        else:
+            clientMessage = self.etyMsg.get()
+            user_and_msg = self.my_username+": "+clientMessage
+            self.txbox.insert('end', "You: "+ clientMessage)
+            self.txbox.insert('end', "\n")
+            client_socket.send(user_and_msg.encode('utf-8'))
+            self.etyMsg.delete(0, 'end') 
+#            if clientMessage.find("start") != -1:
+#                SecondThread.start()
 
     def Start(self):
         self.root.mainloop()
@@ -174,7 +214,7 @@ class RecvMsg(threading.Thread):
     def __init__(self):
         time.sleep(1)
         threading.Thread.__init__(self)
-        threading.daemon = True    
+#        threading.daemon = True    
         
     def run(self):
         global finish3
@@ -183,6 +223,8 @@ class RecvMsg(threading.Thread):
             serverMessage = client_socket.recv(1024).decode('utf-8')
 #            time.sleep(1)
             print(serverMessage)
+            if serverMessage == "__Start__":
+                SecondThread.start()
             test = serverMessage[22:]
             if test.find(":") == -1:
                 positions = test.split()
@@ -231,11 +273,16 @@ class RecvMsg(threading.Thread):
                             Main.cvs.create_oval(int(X)-int(S), int(Y)-int(S), 
                                                  int(X)+int(S), int(Y)+int(S), 
                                                  fill = C , outline = C)
-                Main.txbox.insert('end', test) 
-                Main.txbox.insert('end', "\n") 
+#                Main.txbox.insert('end', test) 
+#                Main.txbox.insert('end', "\n") 
             else:
+#                if test.find("Start") != -1:
+#                    SecondThread.start()
+                if test.find("哈囉") != -1:
+                    print("hello!!!!!!")
                 Main.txbox.insert('end', serverMessage[22:]) 
                 Main.txbox.insert('end', "\n") 
+        print("recv break")
             
             
 
@@ -249,6 +296,15 @@ class Process(threading.Thread):
         start[0] = time.time()
 
     def run(self):
+        Main.txbox.insert('end', "The Game is going to start!!") 
+        Main.txbox.insert('end', "\n") 
+        for i in range(3):
+            time.sleep(2)
+            Main.txbox.insert('end', str(3-i)) 
+            Main.txbox.insert('end', "\n") 
+        time.sleep(2)
+        Main.txbox.insert('end', "Start!!") 
+        Main.txbox.insert('end', "\n") 
         totaltime = 30
         movex = 0
         times = 0
@@ -274,9 +330,11 @@ SecondThread = Process()
 ThirdThread = RecvMsg()
 Main = YouDrawIGuess()
 
-Main.root.after(50, SecondThread.start)
+#Main.root.after(50, SecondThread.start)
 Main.root.after(70, ThirdThread.start)
 Main.Start()
 finish2 = True
-finish2 = True
+finish3 = True
+msg = "__Exit!__"
+client_socket.send(msg.encode('utf-8'))
 
