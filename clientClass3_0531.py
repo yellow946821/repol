@@ -17,7 +17,7 @@ myrect = [0]
 first = [True]
 rectxy = [20,20]
 
-IP = "127.0.0.1"
+IP = "10.115.49.157"
 PORT = 8000
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((IP, PORT))
@@ -173,7 +173,7 @@ class YouDrawIGuess(threading.Thread):
     def Ready(self):
         print(self.ready.get())
         if self.my_username == "Nobody":
-            self.ready.set("none")
+            self.ready.set("not ready")
             self.txbox.insert('end', "You have to set a name!!!")
             self.txbox.insert('end', "\n")
         else:
@@ -183,7 +183,7 @@ class YouDrawIGuess(threading.Thread):
     def NotReady(self):
         print(self.ready.get())
         if self.my_username == "Nobody":
-            self.ready.set("none")
+            self.ready.set("not ready")
             self.txbox.insert('end', "You have to set a name!!!")
             self.txbox.insert('end', "\n")
         else:
@@ -225,7 +225,14 @@ class RecvMsg(threading.Thread):
             print(serverMessage)
             if serverMessage == "__Start__":
                 SecondThread.start()
-            test = serverMessage[22:]
+            num = 0
+            for i in range(len(serverMessage)):
+                if serverMessage[i] == ":":
+                    num += 1
+                if num == 2:
+                    test = serverMessage[i+2:]
+                    break
+#            test = serverMessage[22:]
             if test.find(":") == -1:
                 positions = test.split()
                 for i in range(len(positions)):
