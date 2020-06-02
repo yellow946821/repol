@@ -49,7 +49,8 @@ def clientThread(clientSocket, clientAddress):
         for client in clients:
             if client is not clientSocket:
 #                time.sleep(1)
-                client.send((clientAddress[0] + ":" + str(clientAddress[1]) +" says: "+ message).encode('utf-8'))
+#                clientAddress[0] + ":" + str(clientAddress[1]) +" says: "+
+                client.send((message).encode('utf-8'))
     print("break")
     clientSocket.close()
     
@@ -72,7 +73,7 @@ def NotReady(clientAddress):
 hostSocket = socket(AF_INET, SOCK_STREAM)
 hostSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR,1)
 
-hostIp = "127.0.0.1"
+hostIp = "10.115.49.157"
 portNumber = 8000
 hostSocket.bind((hostIp, portNumber))
 hostSocket.listen()

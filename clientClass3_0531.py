@@ -226,12 +226,13 @@ class RecvMsg(threading.Thread):
             if serverMessage == "__Start__":
                 SecondThread.start()
             num = 0
-            for i in range(len(serverMessage)):
-                if serverMessage[i] == ":":
-                    num += 1
-                if num == 2:
-                    test = serverMessage[i+2:]
-                    break
+            test = serverMessage
+#            for i in range(len(serverMessage)):
+#                if serverMessage[i] == ":":
+#                    num += 1
+#                if num == 2:
+#                    test = serverMessage[i+2:]
+#                    break
 #            test = serverMessage[22:]
             if test.find(":") == -1:
                 positions = test.split()
@@ -287,7 +288,7 @@ class RecvMsg(threading.Thread):
 #                    SecondThread.start()
                 if test.find("哈囉") != -1:
                     print("hello!!!!!!")
-                Main.txbox.insert('end', serverMessage[22:]) 
+                Main.txbox.insert('end', test) 
                 Main.txbox.insert('end', "\n") 
         print("recv break")
             
